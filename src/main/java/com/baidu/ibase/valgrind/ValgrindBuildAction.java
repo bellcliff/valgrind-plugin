@@ -7,7 +7,7 @@ import hudson.model.AbstractBuild;
 public class ValgrindBuildAction implements Action{
 
 	public ValgrindBuildAction(AbstractBuild<?, ?> build, FilePath[] reports) {
-		// TODO Auto-generated constructor stub
+		
 	}
 
 	public String getIconFileName() {
@@ -30,4 +30,7 @@ public class ValgrindBuildAction implements Action{
 		return null;
 	}
 
+//	public static ValgrindReport load(AbstractBuild<?,?> owner, FilePath... files){
+//		
+//	}
 }

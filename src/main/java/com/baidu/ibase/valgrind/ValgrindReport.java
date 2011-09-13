@@ -1,7 +1,11 @@
 package com.baidu.ibase.valgrind;
 
-public class ValgrindReport {
 
-	public ValgrindMeasure definitly;
+public class ValgrindReport extends AggregatedReport<ValgrindReport, ValgrindReport, FileReport>{
+
+	public String getDisplayName() {
+		return "Valgrind report";
+	}
+
 
 }

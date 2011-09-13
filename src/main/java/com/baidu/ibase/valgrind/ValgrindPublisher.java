@@ -83,7 +83,7 @@ public class ValgrindPublisher extends Recorder {
 		build.getActions().add(action);
 
 		final ValgrindReport report = action.getResult();
-		if (report == null || report.definitly.bytes > 0) {
+		if (report == null || report.definity.bytes > 0) {
 			build.setResult(Result.FAILURE);
 			return false;
 		}
