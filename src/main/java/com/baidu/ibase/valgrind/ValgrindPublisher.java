@@ -47,13 +47,13 @@ public class ValgrindPublisher extends Recorder {
 	 */
 	protected static FilePath[] locateReport(FilePath workspace, String includes)
 			throws IOException, InterruptedException {
-		// 支持配置绝对路径
+		// support absolute path
 		FilePath dir = new FilePath(new File(includes));
 		if (dir.exists())
 			return dir.list("*.xml");
 		if (new FilePath(workspace, includes).exists())
 			return dir.list("*.xml");
-		// 否则，在工作空间查找路径
+		// search in workspace
 		return workspace.list(includes);
 	}
 
@@ -78,8 +78,7 @@ public class ValgrindPublisher extends Recorder {
 		}
 		saveReport(getValgrindReportPath(build), reports);
 
-		final ValgrindBuildAction action = new ValgrindBuildAction(build,
-				reports);
+		final ValgrindBuildAction action = ValgrindBuildAction.load(build, rule, headlthThresholds, reports);
 		build.getActions().add(action);
 
 		final ValgrindReport report = action.getResult();
