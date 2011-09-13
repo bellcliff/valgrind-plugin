@@ -1,27 +1,50 @@
 package com.baidu.ibase.valgrind;
 
-import hudson.model.AbstractProject;
 import hudson.model.Action;
+import hudson.model.Result;
+import hudson.model.AbstractBuild;
+import hudson.model.AbstractProject;
+
+import java.io.IOException;
+
+import org.kohsuke.stapler.StaplerRequest;
+import org.kohsuke.stapler.StaplerResponse;
 
 public class ValgrindProjectAction implements Action {
-	
-	public ValgrindProjectAction(AbstractProject<?, ?> project) {
-		// TODO Auto-generated constructor stub
+	public final AbstractProject<?, ?> project;
+
+	public ValgrindProjectAction(AbstractProject project) {
+		this.project = project;
 	}
 
 	public String getIconFileName() {
-		// TODO Auto-generated method stub
-		return null;
+		return "graph.gif";
 	}
 
 	public String getDisplayName() {
-		// TODO Auto-generated method stub
-		return null;
+		return "Valgrind";
 	}
 
 	public String getUrlName() {
-		// TODO Auto-generated method stub
-		return null;
+		return "valgrind";
 	}
 
+    /**
+     * Gets the most recent {@link EmmaBuildAction} object.
+     */
+    public ValgrindBuildAction getLastResult() {
+        for( AbstractBuild<?,?> b = project.getLastBuild(); b!=null; b=b.getPreviousBuild()) {
+            if(b.getResult()== Result.FAILURE)
+                continue;
+            ValgrindBuildAction r = b.getAction(ValgrindBuildAction.class);
+            if(r!=null)
+                return r;
+        }
+        return null;
+    }
+
+    public void doGraph(StaplerRequest req, StaplerResponse rsp) throws IOException {
+       if (getLastResult() != null)
+          getLastResult().doGraph(req,rsp);
+    }
 }
