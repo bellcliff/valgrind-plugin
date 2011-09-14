@@ -1,0 +1,11 @@
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define"
+	xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form"
+	xmlns:e="/com/baidu/ibase/valgrind/tags">
+	<table border="1px" class="pane">
+		<e:captionLine />
+		<tr>
+			<td>${title}</td>
+			${it.printFourMeasureColumns()}
+		</tr>
+	</table>
+</j:jelly>

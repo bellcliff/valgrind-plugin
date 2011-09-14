@@ -5,26 +5,16 @@ import hudson.model.HealthReport;
 import hudson.model.HealthReportingAction;
 import hudson.model.Result;
 import hudson.model.AbstractBuild;
-import hudson.util.IOException2;
 import hudson.util.NullStream;
 import hudson.util.StreamTaskListener;
 
-import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.lang.ref.WeakReference;
-import java.nio.charset.Charset;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.kohsuke.stapler.StaplerProxy;
-import org.xmlpull.v1.XmlPullParserException;
-
-import com.baidu.ibase.valgrind.util.IOHelper;
 
 public class ValgrindBuildAction extends ValgrindObject<ValgrindBuildAction>
 		implements HealthReportingAction, StaplerProxy {
@@ -55,7 +45,7 @@ public class ValgrindBuildAction extends ValgrindObject<ValgrindBuildAction>
 	}
 
 	public String getDisplayName() {
-		return "Valgrind";
+		return "valgrind";
 	}
 
 	public String getIconFileName() {
@@ -94,30 +84,26 @@ public class ValgrindBuildAction extends ValgrindObject<ValgrindBuildAction>
 
 		if (report != null) {
 			final ValgrindReport r = report.get();
+			logger.info("report exist, return");
 			if (r != null)
 				return r;
 		}
 
 		final FilePath reportFolder = ValgrindPublisher.getValgrindReportPath(owner);
-
+		logger.info("parse report : " + reportFolder);
 		try {
 
 			// Get the list of report files stored for this build
 			FilePath[] reports = getValgrindReports(reportFolder);
-			InputStream[] streams = new InputStream[reports.length];
-			for (int i = 0; i < reports.length; i++) {
-				streams[i] = reports[i].read();
-			}
-
 			// Generate the report
-			ValgrindReport r = new ValgrindReport(this, streams);
+			ValgrindReport r = new ValgrindReport(this, reports);
 
 			if (rule != null) {
 				// we change the report so that the FAILED flag is set correctly
 				logger.info("calculating failed packages based on " + rule);
 				rule.enforce(r, new StreamTaskListener(new NullStream()));
 			}
-
+			logger.info("parse report : " + r);
 			report = new WeakReference<ValgrindReport>(r);
 			return r;
 		} catch (InterruptedException e) {
@@ -153,7 +139,7 @@ public class ValgrindBuildAction extends ValgrindObject<ValgrindBuildAction>
 	}
 
 	/**
-	 * Constructs the object from emma XML report files. See <a
+	 * Constructs the object from valgrind XML report files. See <a
 	 * href="http://emma.sourceforge.net/coverage_sample_c/coverage.xml">an
 	 * example XML file</a>.
 	 * 
@@ -166,7 +152,7 @@ public class ValgrindBuildAction extends ValgrindObject<ValgrindBuildAction>
 		Ratio ratios[] = null;
 		for (FilePath f : files) {
 			InputStream in = f.read();
-			try {
+			try {				
 				ratios = Ratio.parseRatio(in, ratios);
 			} finally {
 				in.close();

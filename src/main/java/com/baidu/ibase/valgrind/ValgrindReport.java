@@ -1,12 +1,13 @@
 package com.baidu.ibase.valgrind;
 
+import hudson.FilePath;
 import hudson.model.AbstractBuild;
 import hudson.util.IOException2;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
+
+import org.jfree.util.Log;
 
 public class ValgrindReport extends
 		AggregatedReport<ValgrindReport, ValgrindReport, FileReport> {
@@ -17,24 +18,11 @@ public class ValgrindReport extends
 		this.setName("valgrind");
 	}
 
-	public ValgrindReport(ValgrindBuildAction action, InputStream... xmlReports)
-			throws IOException {
-		this(action);
-		for (InputStream is : xmlReports) {
-			try {
-				Ratio.parseRatio(is, null);
-			} catch (IOException e) {
-				throw new IOException2("Failed to parse XML", e);
-			}
-		}
-		setParent(null);
-	}
-
-	public ValgrindReport(ValgrindBuildAction action, File xmlReport)
+	public ValgrindReport(ValgrindBuildAction action, FilePath[] xmlReport)
 			throws IOException {
 		this(action);
 		try {
-			Ratio.parseRatio(new FileInputStream(xmlReport), null);
+			parse(xmlReport);
 		} catch (IOException e) {
 			throw new IOException2("Failed to parse " + xmlReport, e);
 		}
@@ -53,5 +41,29 @@ public class ValgrindReport extends
 	@Override
 	public AbstractBuild<?, ?> getBuild() {
 		return action.owner;
+	}
+
+	private void parse(FilePath[] files) throws IOException {
+		for (FilePath f : files) {
+			FileReport report = new FileReport();
+			report.setName(f.getBaseName());
+			report.setRatios(Ratio.parseRatio(f.read(), null));
+			this.add(report);
+		}
+		Log.info(this);
+	}
+	
+	public static void main(String[] args) {
+		try {
+			ValgrindReport r = new ValgrindReport(null);
+			r.parse(new FilePath(new File("c:\\valgrind")).list("*.xml"));
+			System.out.println(r);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 }

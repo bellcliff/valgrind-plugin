@@ -1,0 +1,11 @@
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form" xmlns:i="jelly:fmt" xmlns:local="local">
+  <div class="test-trend-caption">
+    ${%Valgrind Measure Trend}
+  </div>
+  <div>
+    <a href="lastBuild/valgrind/"><img src="valgrind/graph" /></a>
+  </div>
+  <div style="text-align:right">
+    <a href="valgrind/">${%enlarge}</a>
+  </div>
+</j:jelly>

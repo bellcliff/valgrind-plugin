@@ -1,10 +1,5 @@
 package com.baidu.ibase.valgrind;
 
-import hudson.FilePath;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
@@ -32,13 +27,21 @@ public class Ratio implements Serializable {
 		return initialized;
 	}
 
-	public void addValue(int bytes, int blocks) {
+	public void setValue(int bytes, int blocks) {
 		this.bytes = bytes;
 		this.blocks = blocks;
 		initialized = true;
 	}
+	
+	public void addRatio(Ratio r){
+		if(r == null)
+			return;
+		this.bytes+=r.bytes;
+		this.blocks+=r.blocks;
+		initialized = true;
+	}
 
-	public static Ratio parse(int bytes, int blocks) {
+	private static Ratio parse(int bytes, int blocks) {
 		Ratio r = new Ratio();
 		r.bytes = bytes;
 		r.blocks = blocks;
@@ -48,7 +51,9 @@ public class Ratio implements Serializable {
 	public static Ratio[] parseRatio(InputStream in, Ratio[] r)
 			throws IOException {
 		StringBuilder sb = IOHelper.read(in);
-		if (r == null || r.length < 4)
+		// if (r == null || r.length < 4)
+		// r = new Ratio[4];
+		if(r == null)
 			r = new Ratio[4];
 		Matcher m = Pattern.compile(PATTERN).matcher(sb);
 		while (m.find()) {
@@ -65,24 +70,13 @@ public class Ratio implements Serializable {
 				if (r[index] == null)
 					r[index] = parse(bytes, blocks);
 				else
-					r[index].addValue(bytes, blocks);
+					r[index].setValue(bytes, blocks);
 			} else
 				logger.warning("new type found in parse valgrind report : "
 						+ m.group());
 		}
 
 		return r;
-	}
-
-	public static void main(String[] args) throws FileNotFoundException,
-			IOException, InterruptedException {
-		FilePath path = new FilePath(new File("c:\\valgrind"));
-		for (FilePath file : path.list("*.xml")) {
-			System.out.println(file.getBaseName());			
-			Ratio[] rs = parseRatio(file.read(), null);
-			for (Ratio r : rs)
-				System.out.println(r);
-		}
 	}
 
 	private static final Logger logger = Logger.getLogger(ValgrindReport.class

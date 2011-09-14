@@ -6,13 +6,20 @@
 		<artifactId>plugin</artifactId>
 		<version>1.377</version><!-- which version of Hudson is this plugin built 
 			against? -->
-		<relativePath>../pom.xml</relativePath>
+		<relativePath />
 	</parent>
 
 	<groupId>baidu-hudson-plugins</groupId>
 	<artifactId>valgrind-plugin</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>hpi</packaging>
+
+  <developers>
+    <developer>
+      <id>bellcliff</id>
+      <name>Yang Bo</name>
+    </developer>
+  </developers>
 
 	<properties>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -29,33 +36,4 @@
 		</dependency>
 	</dependencies>
 
-	<!-- get every artifact through maven.glassfish.org, which proxies all the 
-		artifacts that we need -->
-	<repositories>
-		<repository>
-			<id>m.g.o-public</id>
-			<url>http://maven.glassfish.org/content/groups/public/</url>
-		</repository>
-	</repositories>
-
-	<pluginRepositories>
-		<pluginRepository>
-			<id>m.g.o-public</id>
-			<url>http://maven.glassfish.org/content/groups/public/</url>
-		</pluginRepository>
-	</pluginRepositories>
-
-	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<version>2.3.2</version>
-				<configuration>
-					<source>1.6</source>
-					<target>1.6</target>
-				</configuration>
-			</plugin>
-		</plugins>
-	</build>
 </project>

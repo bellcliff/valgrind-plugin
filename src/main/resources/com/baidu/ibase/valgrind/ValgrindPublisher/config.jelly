@@ -1,6 +1,7 @@
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define"
 	xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
-	<f:entry title="${%entry.title}" description="${%includes.description}">
+	<f:entry title="${%valgrind path}"
+		description="${%support absolute path, relative path and sth. like *.xml}">
 		<f:textbox name="valgrind.includes" value="${instance.includes}" />
 	</f:entry>
 </j:jelly>

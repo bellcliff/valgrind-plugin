@@ -62,7 +62,7 @@ public class ValgrindPublisher extends Recorder {
 		folder.mkdirs();
 		for (int i = 0; i < files.length; i++) {
 			FilePath src = files[i];
-			FilePath dst = folder.child(src.getBaseName());
+			FilePath dst = folder.child(src.getName());
 			src.copyTo(dst);
 		}
 	}
@@ -78,14 +78,16 @@ public class ValgrindPublisher extends Recorder {
 		}
 		saveReport(getValgrindReportPath(build), reports);
 
-		final ValgrindBuildAction action = ValgrindBuildAction.load(build, rule, headlthThresholds, reports);
+		final ValgrindBuildAction action = ValgrindBuildAction.load(build,
+				rule, headlthThresholds, reports);
 		build.getActions().add(action);
 
-		final ValgrindReport report = action.getResult();
-		if (report == null || report.definity.bytes > 0) {
-			build.setResult(Result.FAILURE);
-			return false;
-		}
+//		final ValgrindReport report = action.getResult();
+		//TODO just for debug
+//		if (report == null || report.definity.bytes > 0) {
+//			build.setResult(Result.FAILURE);
+//			return false;
+//		}
 		return true;
 	}
 
@@ -115,19 +117,22 @@ public class ValgrindPublisher extends Recorder {
 		}
 
 		@Override
-		public boolean isApplicable(@SuppressWarnings("rawtypes") Class<? extends AbstractProject> jobType) {
+		public boolean isApplicable(
+				@SuppressWarnings("rawtypes") Class<? extends AbstractProject> jobType) {
 			return true;
 		}
 
 		@Override
 		public Publisher newInstance(StaplerRequest req, JSONObject formData)
 				throws hudson.model.Descriptor.FormException {
-			return req.bindParameters(ValgrindPublisher.class, "valgrind");
+			ValgrindPublisher publisher = new ValgrindPublisher();
+			req.bindParameters(publisher, "valgrind.");
+			return publisher;
 		}
 
 		@Override
 		public String getDisplayName() {
-			return "valgrind";
+			return "Valgrind";
 		}
 	}
 }

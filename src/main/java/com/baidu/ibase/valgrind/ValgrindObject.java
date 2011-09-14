@@ -14,6 +14,7 @@ import java.awt.BasicStroke;
 import java.awt.Color;
 import java.io.IOException;
 import java.util.Calendar;
+import java.util.logging.Logger;
 
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
@@ -27,20 +28,32 @@ import org.jfree.chart.title.LegendTitle;
 import org.jfree.data.category.CategoryDataset;
 import org.jfree.ui.RectangleEdge;
 import org.jfree.ui.RectangleInsets;
+import org.jfree.util.Log;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
 import org.kohsuke.stapler.export.Exported;
-
 
 public abstract class ValgrindObject<SELF extends ValgrindObject<SELF>> {
 	Ratio definity = new Ratio();
 	Ratio indirect = new Ratio();
 	Ratio reachable = new Ratio();
 	Ratio possible = new Ratio();
+	// Ratio[] ratios = new Ratio[] { definity, indirect, reachable, possible };
 	private volatile boolean failed = false;
 
 	public boolean isFailed() {
 		return failed;
+	}
+
+	public Ratio[] getRatios() {
+		return new Ratio[] { definity, indirect, reachable, possible };
+	}
+
+	public void setRatios(Ratio[] rs) {
+		this.definity.addRatio(rs[0]);
+		this.indirect.addRatio(rs[1]);
+		this.reachable.addRatio(rs[2]);
+		this.possible.addRatio(rs[3]);
 	}
 
 	/**
@@ -50,152 +63,173 @@ public abstract class ValgrindObject<SELF extends ValgrindObject<SELF>> {
 	public void setFailed() {
 		failed = true;
 	}
-	
-	@Exported(inline=true)
-	public Ratio getDefinety(){
+
+	@Exported(inline = true)
+	public Ratio getDefinety() {
 		return definity;
 	}
-	
-	@Exported(inline=true)
-	public Ratio getIndirect(){
+
+	@Exported(inline = true)
+	public Ratio getIndirect() {
 		return indirect;
 	}
-	
-	@Exported(inline=true)
-	public Ratio getReachable(){
+
+	@Exported(inline = true)
+	public Ratio getReachable() {
 		return reachable;
 	}
-	
-	@Exported(inline=true)
-	public Ratio getPossible(){
+
+	@Exported(inline = true)
+	public Ratio getPossible() {
 		return possible;
 	}
-	
 
-    /**
-     * Gets the build object that owns the whole coverage report tree.
-     */
-    public abstract AbstractBuild<?,?> getBuild();
-    
-    /**
-     * Gets the corresponding coverage report object in the previous
-     * run that has the record.
-     *
-     * @return
-     *      null if no earlier record was found.
-     */
-    @Exported
-    public abstract SELF getPreviousResult();
-    
-    public boolean hasDefinetyMeasure(){
-    	return definity.isInitialized();
-    }
-    
-    public boolean hasIndirectMeasure(){
-    	return indirect.isInitialized();
-    }
-    
+	/**
+	 * Gets the build object that owns the whole coverage report tree.
+	 */
+	public abstract AbstractBuild<?, ?> getBuild();
 
-    /**
-     * Generates the graph that shows the coverage trend up to this report.
-     */
-    public void doGraph(StaplerRequest req, StaplerResponse rsp) throws IOException {
-        if(ChartUtil.awtProblemCause != null) {
-            // not available. send out error message
-            rsp.sendRedirect2(req.getContextPath()+"/images/headless.png");
-            return;
-        }
+	/**
+	 * Gets the corresponding coverage report object in the previous run that
+	 * has the record.
+	 * 
+	 * @return null if no earlier record was found.
+	 */
+	@Exported
+	public abstract SELF getPreviousResult();
 
-        AbstractBuild<?,?> build = getBuild();
-        Calendar t = build.getTimestamp();
+	public boolean hasDefinetyMeasure() {
+		return definity.isInitialized();
+	}
 
-        String w = Util.fixEmptyAndTrim(req.getParameter("width"));
-        String h = Util.fixEmptyAndTrim(req.getParameter("height"));
-        int width = (w != null) ? Integer.valueOf(w) : 500;
-        int height = (h != null) ? Integer.valueOf(h) : 200;
+	public boolean hasIndirectMeasure() {
+		return indirect.isInitialized();
+	}
 
-        new GraphImpl(this, t, width, height) {
+	@Override
+	public String toString() {
+		return "valgrind report -- \r\n\tdefinity : " + definity
+				+ "\r\n\tindirect : " + indirect + "\r\n\tpossible : "
+				+ possible;
+	}
 
-            @Override
-            protected DataSetBuilder<String, NumberOnlyBuildLabel> createDataSet(ValgrindObject<SELF> obj) {
-                DataSetBuilder<String, NumberOnlyBuildLabel> dsb = new DataSetBuilder<String, NumberOnlyBuildLabel>();
+	/**
+	 * Generates the graph that shows the coverage trend up to this report.
+	 */
+	public void doGraph(StaplerRequest req, StaplerResponse rsp)
+			throws IOException {
+		if (ChartUtil.awtProblemCause != null) {
+			// not available. send out error message
+			rsp.sendRedirect2(req.getContextPath() + "/images/headless.png");
+			return;
+		}
 
-                for (ValgrindObject<SELF> a = obj; a != null; a = a.getPreviousResult()) {
-                    NumberOnlyBuildLabel label = new NumberOnlyBuildLabel(a.getBuild());
-                    dsb.add(a.definity.bytes, "definity", label);
-                    dsb.add(a.indirect.bytes, "indirectly", label);
-                    dsb.add(a.reachable.bytes, "reachable", label);
-                    dsb.add(a.possible.bytes, "possible", label);
-                }
+		AbstractBuild<?, ?> build = getBuild();
+		Log.info("do graph on build : " + build.number);
+		Calendar t = build.getTimestamp();
 
-                return dsb;
-            }
-        }.doPng(req, rsp);
-    }
+		String w = Util.fixEmptyAndTrim(req.getParameter("width"));
+		String h = Util.fixEmptyAndTrim(req.getParameter("height"));
+		int width = (w != null) ? Integer.valueOf(w) : 500;
+		int height = (h != null) ? Integer.valueOf(h) : 200;
 
-    public Api getApi() {
-    	return new Api(this);
-    }
+		new GraphImpl(this, t, width, height) {
 
-    private abstract class GraphImpl extends Graph {
+			@Override
+			protected DataSetBuilder<String, NumberOnlyBuildLabel> createDataSet(
+					ValgrindObject<SELF> obj) {
+				DataSetBuilder<String, NumberOnlyBuildLabel> dsb = new DataSetBuilder<String, NumberOnlyBuildLabel>();
 
-        private ValgrindObject<SELF> obj;
+				for (ValgrindObject<SELF> a = obj; a != null; a = a
+						.getPreviousResult()) {
+					NumberOnlyBuildLabel label = new NumberOnlyBuildLabel(
+							a.getBuild());
+					dsb.add(a.definity.bytes, "definity", label);
+					dsb.add(a.indirect.bytes, "indirectly", label);
+					dsb.add(a.reachable.bytes, "reachable", label);
+					dsb.add(a.possible.bytes, "possible", label);
+					for (Ratio r : a.getRatios())
+						if (upper < r.bytes)
+							upper = (1 + r.bytes / 100) * 100;
+				}
+				return dsb;
+			}
+		}.doPng(req, rsp);
+	}
 
-        public GraphImpl(ValgrindObject<SELF> obj, Calendar timestamp, int defaultW, int defaultH) {
-            super(timestamp, defaultW, defaultH);
-            this.obj = obj;
-        }
+	public Api getApi() {
+		return new Api(this);
+	}
 
-        protected abstract DataSetBuilder<String, NumberOnlyBuildLabel> createDataSet(ValgrindObject<SELF> obj);
+	private abstract class GraphImpl extends Graph {
 
-        protected JFreeChart createGraph() {
-            final CategoryDataset dataset = createDataSet(obj).build();
-            final JFreeChart chart = ChartFactory.createLineChart(
-                    null, // chart title
-                    null, // unused
-                    "%", // range axis label
-                    dataset, // data
-                    PlotOrientation.VERTICAL, // orientation
-                    true, // include legend
-                    true, // tooltips
-                    false // urls
-                    );
+		private ValgrindObject<SELF> obj;
 
-            // NOW DO SOME OPTIONAL CUSTOMISATION OF THE CHART...
+		public GraphImpl(ValgrindObject<SELF> obj, Calendar timestamp,
+				int defaultW, int defaultH) {
+			super(timestamp, defaultW, defaultH);
+			this.obj = obj;
+		}
 
-            final LegendTitle legend = chart.getLegend();
-            legend.setPosition(RectangleEdge.RIGHT);
+		protected abstract DataSetBuilder<String, NumberOnlyBuildLabel> createDataSet(
+				ValgrindObject<SELF> obj);
 
-            chart.setBackgroundPaint(Color.white);
+		protected JFreeChart createGraph() {
+			logger.info("create graph");
+			final CategoryDataset dataset = createDataSet(obj).build();
+			final JFreeChart chart = ChartFactory.createLineChart(null, // chart
+																		// title
+					null, // unused
+					"bytes", // range axis label
+					dataset, // data
+					PlotOrientation.VERTICAL, // orientation
+					true, // include legend
+					true, // tooltips
+					false // urls
+					);
 
-            final CategoryPlot plot = chart.getCategoryPlot();
+			// NOW DO SOME OPTIONAL CUSTOMISATION OF THE CHART...
 
-            // plot.setAxisOffset(new Spacer(Spacer.ABSOLUTE, 5.0, 5.0, 5.0, 5.0));
-            plot.setBackgroundPaint(Color.WHITE);
-            plot.setOutlinePaint(null);
-            plot.setRangeGridlinesVisible(true);
-            plot.setRangeGridlinePaint(Color.black);
+			final LegendTitle legend = chart.getLegend();
+			legend.setPosition(RectangleEdge.RIGHT);
 
-            CategoryAxis domainAxis = new ShiftedCategoryAxis(null);
-            plot.setDomainAxis(domainAxis);
-            domainAxis.setCategoryLabelPositions(CategoryLabelPositions.UP_90);
-            domainAxis.setLowerMargin(0.0);
-            domainAxis.setUpperMargin(0.0);
-            domainAxis.setCategoryMargin(0.0);
+			chart.setBackgroundPaint(Color.white);
 
-            final NumberAxis rangeAxis = (NumberAxis) plot.getRangeAxis();
-            rangeAxis.setStandardTickUnits(NumberAxis.createIntegerTickUnits());
-            rangeAxis.setUpperBound(100);
-            rangeAxis.setLowerBound(0);
+			final CategoryPlot plot = chart.getCategoryPlot();
 
-            final LineAndShapeRenderer renderer = (LineAndShapeRenderer) plot.getRenderer();
-            renderer.setBaseStroke(new BasicStroke(4.0f));
-            ColorPalette.apply(renderer);
+			// plot.setAxisOffset(new Spacer(Spacer.ABSOLUTE, 5.0, 5.0, 5.0,
+			// 5.0));
+			plot.setBackgroundPaint(Color.WHITE);
+			plot.setOutlinePaint(null);
+			plot.setRangeGridlinesVisible(true);
+			plot.setRangeGridlinePaint(Color.black);
 
-            // crop extra space around the graph
-            plot.setInsets(new RectangleInsets(5.0, 0, 0, 5.0));
+			CategoryAxis domainAxis = new ShiftedCategoryAxis(null);
+			plot.setDomainAxis(domainAxis);
+			domainAxis.setCategoryLabelPositions(CategoryLabelPositions.UP_90);
+			domainAxis.setLowerMargin(0.0);
+			domainAxis.setUpperMargin(0.0);
+			domainAxis.setCategoryMargin(0.0);
 
-            return chart;
-        }
-    }
+			final NumberAxis rangeAxis = (NumberAxis) plot.getRangeAxis();
+			rangeAxis.setStandardTickUnits(NumberAxis.createIntegerTickUnits());
+			rangeAxis.setUpperBound(upper);
+			rangeAxis.setLowerBound(0);
+
+			final LineAndShapeRenderer renderer = (LineAndShapeRenderer) plot
+					.getRenderer();
+			renderer.setBaseStroke(new BasicStroke(4.0f));
+			ColorPalette.apply(renderer);
+
+			// crop extra space around the graph
+			plot.setInsets(new RectangleInsets(5.0, 0, 0, 5.0));
+
+			return chart;
+		}
+
+		int upper = 100;
+	}
+
+	private static final Logger logger = Logger.getLogger(ValgrindObject.class
+			.getName());
 }

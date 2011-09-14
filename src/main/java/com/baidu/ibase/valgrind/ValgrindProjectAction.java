@@ -13,7 +13,7 @@ import org.kohsuke.stapler.StaplerResponse;
 public class ValgrindProjectAction implements Action {
 	public final AbstractProject<?, ?> project;
 
-	public ValgrindProjectAction(AbstractProject project) {
+	public ValgrindProjectAction(AbstractProject<?, ?> project) {
 		this.project = project;
 	}
 
@@ -22,29 +22,31 @@ public class ValgrindProjectAction implements Action {
 	}
 
 	public String getDisplayName() {
-		return "Valgrind";
+		return "valgrind";
 	}
 
 	public String getUrlName() {
 		return "valgrind";
 	}
 
-    /**
-     * Gets the most recent {@link EmmaBuildAction} object.
-     */
-    public ValgrindBuildAction getLastResult() {
-        for( AbstractBuild<?,?> b = project.getLastBuild(); b!=null; b=b.getPreviousBuild()) {
-            if(b.getResult()== Result.FAILURE)
-                continue;
-            ValgrindBuildAction r = b.getAction(ValgrindBuildAction.class);
-            if(r!=null)
-                return r;
-        }
-        return null;
-    }
+	/**
+	 * Gets the most recent {@link EmmaBuildAction} object.
+	 */
+	public ValgrindBuildAction getLastResult() {
+		for (AbstractBuild<?, ?> b = project.getLastBuild(); b != null; b = b
+				.getPreviousBuild()) {
+			if (b.getResult() == Result.FAILURE)
+				continue;
+			ValgrindBuildAction r = b.getAction(ValgrindBuildAction.class);
+			if (r != null)
+				return r;
+		}
+		return null;
+	}
 
-    public void doGraph(StaplerRequest req, StaplerResponse rsp) throws IOException {
-       if (getLastResult() != null)
-          getLastResult().doGraph(req,rsp);
-    }
+	public void doGraph(StaplerRequest req, StaplerResponse rsp)
+			throws IOException {
+		if (getLastResult() != null)
+			getLastResult().doGraph(req, rsp);
+	}
 }

@@ -32,7 +32,7 @@ public class ValgrindElement {
         } else {
             throw new IllegalArgumentException("Invalid type: "+type);
         }
-    	r.addValue(bytes, blocks);
+    	r.setValue(bytes, blocks);
 
     }
 }
