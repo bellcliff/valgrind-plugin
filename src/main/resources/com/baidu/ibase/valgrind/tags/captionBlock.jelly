@@ -1,0 +1,9 @@
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define"
+	xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form"
+	xmlns:e="/com/baidu/ibase/valgrind/tags">
+	<tr>
+		<th>${%block index}</th>
+		<th>${%lost type}</th>
+		<th>${%lost bytes}</th>
+	</tr>
+</j:jelly>

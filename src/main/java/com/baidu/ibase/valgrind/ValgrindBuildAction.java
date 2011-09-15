@@ -9,7 +9,6 @@ import hudson.util.NullStream;
 import hudson.util.StreamTaskListener;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.lang.ref.WeakReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -33,14 +32,11 @@ public class ValgrindBuildAction extends ValgrindObject<ValgrindBuildAction>
 	private final ValgrindHealthReportThresholds thresholds;
 
 	public ValgrindBuildAction(AbstractBuild<?, ?> owner, Rule rule,
-			Ratio definity, Ratio indirectly, Ratio reachable, Ratio possible,
-			ValgrindHealthReportThresholds thresholds) {
+			ValgrindReport report, ValgrindHealthReportThresholds thresholds) {
 		this.owner = owner;
 		this.rule = rule;
-		this.definity = definity;
-		this.indirect = indirectly;
-		this.reachable = reachable;
-		this.possible = possible;
+		this.report = new WeakReference<ValgrindReport>(report);
+		this.setRatios(report.getRatios());
 		this.thresholds = thresholds;
 	}
 
@@ -89,21 +85,21 @@ public class ValgrindBuildAction extends ValgrindObject<ValgrindBuildAction>
 				return r;
 		}
 
-		final FilePath reportFolder = ValgrindPublisher.getValgrindReportPath(owner);
-		logger.info("parse report : " + reportFolder);
+		final FilePath reportFolder = ValgrindPublisher
+				.getValgrindReportPath(owner);
+		// logger.info("parse report : " + reportFolder);
 		try {
 
 			// Get the list of report files stored for this build
 			FilePath[] reports = getValgrindReports(reportFolder);
 			// Generate the report
-			ValgrindReport r = new ValgrindReport(this, reports);
-
+			ValgrindReport r = ValgrindReport.parse(reports);
+			r.setAction(this);
 			if (rule != null) {
 				// we change the report so that the FAILED flag is set correctly
 				logger.info("calculating failed packages based on " + rule);
 				rule.enforce(r, new StreamTaskListener(new NullStream()));
 			}
-			logger.info("parse report : " + r);
 			report = new WeakReference<ValgrindReport>(r);
 			return r;
 		} catch (InterruptedException e) {
@@ -138,29 +134,20 @@ public class ValgrindBuildAction extends ValgrindObject<ValgrindBuildAction>
 		}
 	}
 
-	/**
-	 * Constructs the object from valgrind XML report files. See <a
-	 * href="http://emma.sourceforge.net/coverage_sample_c/coverage.xml">an
-	 * example XML file</a>.
-	 * 
-	 * @throws IOException
-	 *             if failed to parse the file.
-	 */
-	public static ValgrindBuildAction load(AbstractBuild<?, ?> owner,
-			Rule rule, ValgrindHealthReportThresholds thresholds,
-			FilePath... files) throws IOException {
-		Ratio ratios[] = null;
-		for (FilePath f : files) {
-			InputStream in = f.read();
-			try {				
-				ratios = Ratio.parseRatio(in, ratios);
-			} finally {
-				in.close();
-			}
-		}
-		return new ValgrindBuildAction(owner, rule, ratios[0], ratios[1],
-				ratios[2], ratios[3], thresholds);
-	}
+//	/**
+//	 * Constructs the object from valgrind XML report files. See <a
+//	 * href="http://emma.sourceforge.net/coverage_sample_c/coverage.xml">an
+//	 * example XML file</a>.
+//	 * 
+//	 * @throws IOException
+//	 *             if failed to parse the file.
+//	 */
+//	public static ValgrindBuildAction load(AbstractBuild<?, ?> owner,
+//			Rule rule, ValgrindHealthReportThresholds thresholds,
+//			FilePath... files) throws IOException {
+//		ValgrindReport report = ValgrindReport.parse(files);
+//		return new ValgrindBuildAction(owner, rule, report, thresholds);
+//	}
 
 	private static final Logger logger = Logger
 			.getLogger(ValgrindBuildAction.class.getName());

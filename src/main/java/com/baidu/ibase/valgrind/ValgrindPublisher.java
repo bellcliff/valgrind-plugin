@@ -78,16 +78,10 @@ public class ValgrindPublisher extends Recorder {
 		}
 		saveReport(getValgrindReportPath(build), reports);
 
-		final ValgrindBuildAction action = ValgrindBuildAction.load(build,
-				rule, headlthThresholds, reports);
+		final ValgrindBuildAction action = new ValgrindBuildAction(build, rule,
+				ValgrindReport.parse(reports), headlthThresholds);
 		build.getActions().add(action);
-
-//		final ValgrindReport report = action.getResult();
-		//TODO just for debug
-//		if (report == null || report.definity.bytes > 0) {
-//			build.setResult(Result.FAILURE);
-//			return false;
-//		}
+		
 		return true;
 	}
 

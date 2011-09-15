@@ -7,8 +7,12 @@
 			<h2>${%Valgrind Meausre Report}</h2>
 			<e:floatingTrendGraph />
 
-			<h3>${%Overall File Measure Report}</h3>
+			<h3>${%Overall Valgrind Measure Report}</h3>
 			<e:summaryTable title="${%all files}" />
+
+
+			<h3>${%Measure Breakdown by File}</h3>
+			<e:breakdownTable />
 		</l:main-panel>
 	</l:layout>
 </j:jelly>

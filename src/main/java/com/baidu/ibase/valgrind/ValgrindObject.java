@@ -50,10 +50,10 @@ public abstract class ValgrindObject<SELF extends ValgrindObject<SELF>> {
 	}
 
 	public void setRatios(Ratio[] rs) {
-		this.definity.addRatio(rs[0]);
-		this.indirect.addRatio(rs[1]);
-		this.reachable.addRatio(rs[2]);
-		this.possible.addRatio(rs[3]);
+		this.definity.setValue(rs[0]);
+		this.indirect.setValue(rs[1]);
+		this.reachable.setValue(rs[2]);
+		this.possible.setValue(rs[3]);
 	}
 
 	/**
@@ -98,19 +98,36 @@ public abstract class ValgrindObject<SELF extends ValgrindObject<SELF>> {
 	@Exported
 	public abstract SELF getPreviousResult();
 
-	public boolean hasDefinetyMeasure() {
-		return definity.isInitialized();
-	}
-
-	public boolean hasIndirectMeasure() {
-		return indirect.isInitialized();
-	}
-
 	@Override
 	public String toString() {
-		return "valgrind report -- \r\n\tdefinity : " + definity
-				+ "\r\n\tindirect : " + indirect + "\r\n\tpossible : "
-				+ possible;
+		return this.getClass().getSimpleName() + "-- \r\n\tdefinity : "
+				+ definity + "\r\n\tindirect : " + indirect
+				+ "\r\n\tpossible : " + possible + "\r\n\treachable : "
+				+ reachable;
+	}
+
+	public String printFourMeasureColumns() {
+		StringBuilder buf = new StringBuilder();
+		printRatioCell(definity, buf,definity.bytes>0);
+		printRatioCell(indirect, buf, indirect.bytes>0);
+		printRatioCell(reachable, buf, false);
+		printRatioCell(possible, buf, false);
+		return buf.toString();
+	}
+
+	protected static void printRatioCell(Ratio ratio, StringBuilder buf, boolean failed) {
+		if (ratio != null && ratio.bytes != 0) {
+			String className = "nowrap" + (failed ? " red" : "");
+			buf.append("<td class='").append(className).append("'");
+			buf.append(">\n");
+			printRatioTable(ratio, buf);
+			buf.append("</td>\n");
+		}else
+			buf.append("<td />");
+	}
+
+	protected static void printRatioTable(Ratio ratio, StringBuilder buf) {
+		buf.append(ratio);
 	}
 
 	/**
@@ -148,9 +165,15 @@ public abstract class ValgrindObject<SELF extends ValgrindObject<SELF>> {
 					dsb.add(a.indirect.bytes, "indirectly", label);
 					dsb.add(a.reachable.bytes, "reachable", label);
 					dsb.add(a.possible.bytes, "possible", label);
-					for (Ratio r : a.getRatios())
+					for (Ratio r : a.getRatios()) {
 						if (upper < r.bytes)
 							upper = (1 + r.bytes / 100) * 100;
+						// TODO 单位和大小缩放
+						if (r.bytes > 1000 * 1000) {
+							matrix = "M bytes";
+						} else if (r.bytes > 1000)
+							matrix = "k bytes";
+					}
 				}
 				return dsb;
 			}
@@ -175,7 +198,6 @@ public abstract class ValgrindObject<SELF extends ValgrindObject<SELF>> {
 				ValgrindObject<SELF> obj);
 
 		protected JFreeChart createGraph() {
-			logger.info("create graph");
 			final CategoryDataset dataset = createDataSet(obj).build();
 			final JFreeChart chart = ChartFactory.createLineChart(null, // chart
 																		// title
@@ -228,6 +250,7 @@ public abstract class ValgrindObject<SELF extends ValgrindObject<SELF>> {
 		}
 
 		int upper = 100;
+		String matrix = "bytes";
 	}
 
 	private static final Logger logger = Logger.getLogger(ValgrindObject.class

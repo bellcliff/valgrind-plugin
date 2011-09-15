@@ -1,0 +1,35 @@
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define"
+	xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form"
+	xmlns:e="/com/baidu/ibase/valgrind/tags">
+	<table border="1px" class="sortable pane">
+		<script type="text/javascript">
+			function switchBlockDisplay(dom){
+				var table =	dom.nextSibling;//.firstChild.firstChild;
+				table.style.display = table.style.display == "" ? "none" : "";
+			}
+		</script>
+		<e:captionFile />
+		<j:forEach var="c" items="${it.children.values()}">
+			<tr class="filereport" onclick="switchBlockDisplay(this)">
+				<td class="nowrap ${h.ifThenElse(c.failed,' red','')}" title="${c.name}">
+					<a href="${h.ifThenElse(nolink!=null,null,c.name+'/')}">
+						<st:out value="${c.simpleName}" />
+					</a>
+				</td>
+				${c.printFourMeasureColumns()}
+			</tr>
+			<tr class="blockreport" style="display:none;">
+				<td colSpan="5">
+					<div>
+						<table border="1px" class="pane">
+							<e:captionBlock />
+							<j:forEach var="d" items="${c.children.values()}">
+								${d.printRecord()}
+							</j:forEach>
+						</table>
+					</div>
+				</td>
+			</tr>
+		</j:forEach>
+	</table>
+</j:jelly>

@@ -1,8 +1,8 @@
 package com.baidu.ibase.valgrind;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.TreeMap;
 
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
@@ -10,12 +10,12 @@ import org.kohsuke.stapler.StaplerResponse;
 public abstract class AggregatedReport<PARENT extends AggregatedReport<?, PARENT, ?>, SELF extends AggregatedReport<PARENT, SELF, CHILD>, CHILD extends AbstractReport<SELF, CHILD>>
 		extends AbstractReport<PARENT, SELF> {
 
-	private final Map<String, CHILD> children = new TreeMap<String, CHILD>();
+	private final Map<String, CHILD> children = new HashMap<String, CHILD>();
 
 	public void add(CHILD child) {
 		children.put(child.getName(), child);
 		setRatios(child.getRatios());
-	}
+	}	
 
 	public Map<String, CHILD> getChildren() {
 		return children;
@@ -44,21 +44,4 @@ public abstract class AggregatedReport<PARENT extends AggregatedReport<?, PARENT
 		return getChildren().size() > 0;
 	}
 
-	public boolean hasChildrenDefinityMeasure() {
-		for (CHILD child : getChildren().values()) {
-			if (child.hasDefinetyMeasure()) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	public boolean hasChildrenIndirectMeasure() {
-		for (CHILD child : getChildren().values()) {
-			if (child.hasIndirectMeasure()) {
-				return true;
-			}
-		}
-		return false;
-	}
 }

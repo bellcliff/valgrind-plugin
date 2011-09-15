@@ -10,7 +10,7 @@
 	</parent>
 
 	<groupId>baidu-hudson-plugins</groupId>
-	<artifactId>valgrind-plugin</artifactId>
+	<artifactId>valgrind</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>hpi</packaging>
 
