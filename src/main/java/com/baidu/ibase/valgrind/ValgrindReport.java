@@ -40,9 +40,11 @@ public class ValgrindReport extends
 	public static ValgrindReport parse(FilePath[] files) throws IOException {
 		ValgrindReport report = new ValgrindReport();
 		for (FilePath f : files) {
-			report.add(parseFileReport(f));
+			report.add(parseFileReport(f));			
 		}
 		logger.info(report.toString());
+		for(FileReport fp : report.getChildren().values())
+			fp.setParent(report);
 		return report;
 	}
 
@@ -64,6 +66,8 @@ public class ValgrindReport extends
 			end = m.end();
 		}
 		report.getChildren().get(last).recordDetail = sb.substring(end);
+		for(LossRecordReport lrr : report.getChildren().values())
+			lrr.setParent(report);
 		return report;
 	}
 

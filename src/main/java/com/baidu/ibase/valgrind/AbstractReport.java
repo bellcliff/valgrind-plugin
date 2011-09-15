@@ -1,9 +1,7 @@
 package com.baidu.ibase.valgrind;
 
-import hudson.model.AbstractBuild;
 import hudson.model.ModelObject;
-
-import java.io.IOException;
+import hudson.model.AbstractBuild;
 
 public abstract class AbstractReport<PARENT extends AggregatedReport<?, PARENT, ?>, SELF extends ValgrindObject<SELF>>
 		extends ValgrindObject<SELF> implements ModelObject {
@@ -11,10 +9,6 @@ public abstract class AbstractReport<PARENT extends AggregatedReport<?, PARENT, 
 	private String name;
 
 	private PARENT parent;
-
-	public void addCoverage(ValgrindElement me) throws IOException {
-		me.addTo(this);
-	}
 
 	public String getName() {
 		return name;
