@@ -35,8 +35,9 @@ public class ValgrindProjectAction implements Action {
 	public ValgrindBuildAction getLastResult() {
 		for (AbstractBuild<?, ?> b = project.getLastBuild(); b != null; b = b
 				.getPreviousBuild()) {
-			if (b.getResult() == Result.FAILURE)
-				continue;
+			//show valgrind result even if build fail.
+//			if (b.getResult() == Result.FAILURE)
+//				continue;
 			ValgrindBuildAction r = b.getAction(ValgrindBuildAction.class);
 			if (r != null)
 				return r;

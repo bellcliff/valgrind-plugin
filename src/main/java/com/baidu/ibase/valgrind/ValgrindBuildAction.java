@@ -126,9 +126,11 @@ public class ValgrindBuildAction extends ValgrindObject<ValgrindBuildAction>
 			b = b.getPreviousBuild();
 			if (b == null)
 				return null;
-			if (b.getResult() == Result.FAILURE)
-				continue;
+//			if (b.getResult() == Result.FAILURE)
+//				continue;
+			
 			ValgrindBuildAction r = b.getAction(ValgrindBuildAction.class);
+			
 			if (r != null)
 				return r;
 		}

@@ -12,12 +12,14 @@ import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Publisher;
 import hudson.tasks.Recorder;
+import hudson.util.FormValidation;
 
 import java.io.File;
 import java.io.IOException;
 
 import net.sf.json.JSONObject;
 
+import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
 
 public class ValgrindPublisher extends Recorder {
@@ -26,6 +28,8 @@ public class ValgrindPublisher extends Recorder {
 	 * Relative path to the Emma XML file inside the workspace.
 	 */
 	public String includes;
+
+	public int maxDefinityBlocks = 0;
 
 	/**
 	 * Rule to be enforced. Can be null.
@@ -81,7 +85,19 @@ public class ValgrindPublisher extends Recorder {
 		final ValgrindBuildAction action = new ValgrindBuildAction(build, rule,
 				ValgrindReport.parse(reports), headlthThresholds);
 		build.getActions().add(action);
-		
+
+		// analysis result and set result fail
+		ValgrindReport report = action.getResult();
+		if (report == null) {
+//			Log.info("fail get valgrind report");
+			build.setResult(Result.FAILURE);
+		} else if (maxDefinityBlocks > 0) {
+			if (report.definity.blocks > maxDefinityBlocks) {
+//				logger.info("definity blocks over the threshold");
+				build.setResult(Result.FAILURE);
+			}
+		}
+
 		return true;
 	}
 

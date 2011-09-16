@@ -4,4 +4,8 @@
 		description="${%support absolute path, relative path and sth. like *.xml}">
 		<f:textbox name="valgrind.includes" value="${instance.includes}" />
 	</f:entry>
+	<f:entry title="${%definity blocks threshold}"
+		description="${%the definity block threshold cause build fail}">
+		<f:textbox name="valgrind.maxDefinityBlocks" value="${instance.maxDefinityBlocks}" />
+	</f:entry>
 </j:jelly>
