@@ -2,7 +2,7 @@
 	xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form"
 	xmlns:e="/com/baidu/ibase/valgrind/tags">
 	<table border="1px" class="pane">
-		<e:captionLine />
+		<e:captionFile />
 		<tr>
 			<td>${title}</td>
 			${it.printFourMeasureColumns()}
